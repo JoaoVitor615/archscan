@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/JoaoVitor615/archscan/internal/ast"
 	"github.com/spf13/cobra"
 )
 
@@ -13,9 +15,42 @@ var scanCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		targetPath := args[0]
 
-		fmt.Printf("Starting architectural analysis on directory: %s\n", targetPath)
+		fmt.Printf("Analyzing directory: %s\n\n", targetPath)
 
-		//future logic...
+		parser := ast.NewProjectParser()
+		packages, err := parser.ParseProject(targetPath)
+		if err != nil {
+			fmt.Printf("Error scanning project: %v\n", err)
+			os.Exit(1)
+		}
+
+		if len(packages) == 0 {
+			fmt.Println("No Go packages found.")
+			return
+		}
+
+		for dir, pkg := range packages {
+			fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
+
+			if len(pkg.Structs) > 0 {
+				fmt.Println("  Structs:")
+				for _, s := range pkg.Structs {
+					fmt.Printf("    • %s (Fields: %d, Methods: %d)\n", s.Name, len(s.Fields), len(s.Methods))
+					for _, m := range s.Methods {
+						fmt.Printf("        -> method: %s()\n", m.Name)
+					}
+				}
+			}
+
+			if len(pkg.Functions) > 0 {
+				fmt.Println("  Functions:")
+				for _, fn := range pkg.Functions {
+					fmt.Printf("    • %s()\n", fn.Name)
+				}
+			}
+
+			fmt.Println()
+		}
 	},
 }
 
