@@ -13,6 +13,7 @@ func NewFileFinder() *FileFinder {
 	return &FileFinder{}
 }
 
+// FindGoFiles return all the go files in the specified root path
 func (f *FileFinder) FindGoFiles(root string) ([]string, error) {
 	var files []string
 
