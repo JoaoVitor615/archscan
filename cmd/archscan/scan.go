@@ -13,10 +13,13 @@ var showStructure bool
 
 var scanCmd = &cobra.Command{
 	Use:   "scan [directory]",
-	Short: "Scans a target repository",
-	Args:  cobra.ExactArgs(1),
+	Short: "Scans a target repository and presents architectural metrics",
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		targetPath := args[0]
+		targetPath := "."
+		if len(args) > 0 {
+			targetPath = args[0]
+		}
 
 		parser := ast.NewProjectParser()
 		packages, err := parser.ParseProject(targetPath)
@@ -30,8 +33,23 @@ var scanCmd = &cobra.Command{
 			return
 		}
 
+		// Calculate overview statistics from parsed AST
+		totalStructs := 0
+		totalFuncs := 0
+		for _, pkg := range packages {
+			totalStructs += len(pkg.Structs)
+			totalFuncs += len(pkg.Functions)
+			for _, s := range pkg.Structs {
+				totalFuncs += len(s.Methods)
+			}
+		}
+
+		// Always render the main architecture metrics dashboard
+		ui.RenderDashboard(targetPath, len(packages), totalStructs, totalFuncs)
+
+		// If --show-structure / -s flag is provided, print detailed AST breakdown
 		if showStructure {
-			fmt.Printf("Analyzing directory: %s\n\n", targetPath)
+			fmt.Printf("📦 DETAILED PACKAGE & AST STRUCTURE (%s):\n\n", targetPath)
 			for dir, pkg := range packages {
 				fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
 
@@ -54,17 +72,6 @@ var scanCmd = &cobra.Command{
 
 				fmt.Println()
 			}
-		} else {
-			totalStructs := 0
-			totalFuncs := 0
-			for _, pkg := range packages {
-				totalStructs += len(pkg.Structs)
-				totalFuncs += len(pkg.Functions)
-				for _, s := range pkg.Structs {
-					totalFuncs += len(s.Methods)
-				}
-			}
-			ui.RenderDashboard(targetPath, len(packages), totalStructs, totalFuncs)
 		}
 	},
 }
