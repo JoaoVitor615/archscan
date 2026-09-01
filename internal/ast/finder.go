@@ -22,10 +22,10 @@ func (f *FileFinder) FindGoFiles(root string) ([]string, error) {
 			return err
 		}
 
-		// Skip hidden directories and vendor folders
+		// Skip hidden directories and vendor folders (except root itself)
 		if d.IsDir() {
 			name := d.Name()
-			if strings.HasPrefix(name, ".") || name == "vendor" {
+			if path != root && (strings.HasPrefix(name, ".") || name == "vendor") {
 				return filepath.SkipDir
 			}
 			return nil

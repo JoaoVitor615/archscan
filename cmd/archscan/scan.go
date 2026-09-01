@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var showStructure bool
+
 var scanCmd = &cobra.Command{
 	Use:   "scan [directory]",
 	Short: "Scans a target repository",
@@ -29,32 +31,37 @@ var scanCmd = &cobra.Command{
 			return
 		}
 
-		for dir, pkg := range packages {
-			fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
+		if showStructure {
+			for dir, pkg := range packages {
+				fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
 
-			if len(pkg.Structs) > 0 {
-				fmt.Println("  Structs:")
-				for _, s := range pkg.Structs {
-					fmt.Printf("    • %s (Fields: %d, Methods: %d)\n", s.Name, len(s.Fields), len(s.Methods))
-					for _, m := range s.Methods {
-						fmt.Printf("        -> method: %s()\n", m.Name)
+				if len(pkg.Structs) > 0 {
+					fmt.Println("  Structs:")
+					for _, s := range pkg.Structs {
+						fmt.Printf("    • %s (Fields: %d, Methods: %d)\n", s.Name, len(s.Fields), len(s.Methods))
+						for _, m := range s.Methods {
+							fmt.Printf("        -> method: %s()\n", m.Name)
+						}
 					}
 				}
-			}
 
-			if len(pkg.Functions) > 0 {
-				fmt.Println("  Functions:")
-				for _, fn := range pkg.Functions {
-					fmt.Printf("    • %s()\n", fn.Name)
+				if len(pkg.Functions) > 0 {
+					fmt.Println("  Functions:")
+					for _, fn := range pkg.Functions {
+						fmt.Printf("    • %s()\n", fn.Name)
+					}
 				}
-			}
 
-			fmt.Println()
+				fmt.Println()
+			}
+		} else {
+			fmt.Printf("✓ Successfully scanned %d package(s).\n", len(packages))
 		}
 	},
 }
 
 func init() {
+	scanCmd.Flags().BoolVarP(&showStructure, "show-structure", "s", false, "Display detailed package, struct, and function structure")
 	rootCmd.AddCommand(scanCmd)
-
 }
+
