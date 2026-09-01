@@ -47,31 +47,9 @@ var scanCmd = &cobra.Command{
 		// Always render the main architecture metrics dashboard
 		ui.RenderDashboard(targetPath, len(packages), totalStructs, totalFuncs)
 
-		// If --show-structure / -s flag is provided, print detailed AST breakdown
+		// If --show-structure / -s flag is provided, render the PTerm AST tree
 		if showStructure {
-			fmt.Printf("📦 DETAILED PACKAGE & AST STRUCTURE (%s):\n\n", targetPath)
-			for dir, pkg := range packages {
-				fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
-
-				if len(pkg.Structs) > 0 {
-					fmt.Println("  Structs:")
-					for _, s := range pkg.Structs {
-						fmt.Printf("    • %s (Fields: %d, Methods: %d)\n", s.Name, len(s.Fields), len(s.Methods))
-						for _, m := range s.Methods {
-							fmt.Printf("        -> method: %s()\n", m.Name)
-						}
-					}
-				}
-
-				if len(pkg.Functions) > 0 {
-					fmt.Println("  Functions:")
-					for _, fn := range pkg.Functions {
-						fmt.Printf("    • %s()\n", fn.Name)
-					}
-				}
-
-				fmt.Println()
-			}
+			ui.RenderStructureTree(packages)
 		}
 	},
 }
