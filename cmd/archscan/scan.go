@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/JoaoVitor615/archscan/internal/ast"
+	"github.com/JoaoVitor615/archscan/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -16,8 +17,6 @@ var scanCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		targetPath := args[0]
-
-		fmt.Printf("Analyzing directory: %s\n\n", targetPath)
 
 		parser := ast.NewProjectParser()
 		packages, err := parser.ParseProject(targetPath)
@@ -32,6 +31,7 @@ var scanCmd = &cobra.Command{
 		}
 
 		if showStructure {
+			fmt.Printf("Analyzing directory: %s\n\n", targetPath)
 			for dir, pkg := range packages {
 				fmt.Printf("📦 Package: %s (%s)\n", pkg.Name, dir)
 
@@ -55,7 +55,16 @@ var scanCmd = &cobra.Command{
 				fmt.Println()
 			}
 		} else {
-			fmt.Printf("✓ Successfully scanned %d package(s).\n", len(packages))
+			totalStructs := 0
+			totalFuncs := 0
+			for _, pkg := range packages {
+				totalStructs += len(pkg.Structs)
+				totalFuncs += len(pkg.Functions)
+				for _, s := range pkg.Structs {
+					totalFuncs += len(s.Methods)
+				}
+			}
+			ui.RenderDashboard(targetPath, len(packages), totalStructs, totalFuncs)
 		}
 	},
 }
